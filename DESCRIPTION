@@ -14,7 +14,6 @@ LazyData: true
 Suggests:
     knitr,
     rmarkdown,
-    bgsmtr,
-    corrplot
+    testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2

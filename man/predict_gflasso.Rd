@@ -14,3 +14,6 @@ predict_gflasso(model, new.data)
 \value{
 A n x k matrix carrying all k predicted responses across all n samples
 }
+\description{
+GFLasso prediction
+}

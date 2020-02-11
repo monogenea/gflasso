@@ -24,6 +24,9 @@ A list containing the following quantities: \cr
   $Lu The automatically calculated step size. \cr
 reference.
 }
+\description{
+Graph-guided fused Lasso via Smoothed Proximal Gradient Descent
+}
 \references{
 Smoothing Proximal Gradient Method for General Structured Sparse Regression
 }

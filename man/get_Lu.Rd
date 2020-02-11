@@ -20,6 +20,9 @@ get_Lu(X, C, lambda, gamma, mu)
 \value{
 Lu The automatically chosen step sizes defined in the reference.
 }
+\description{
+Get automatic step-sizes
+}
 \references{
 Smoothing Proximal Gradient Method for General Structured Sparse Regressoin
 }

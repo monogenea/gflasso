@@ -12,6 +12,9 @@ get_H(R)
 \value{
 The matrix H defined in the reference.
 }
+\description{
+Get H matrix giving Graph Penalization
+}
 \references{
 Smoothing Proximal Gradient Method for General Structured Sparse Regressoin
 }

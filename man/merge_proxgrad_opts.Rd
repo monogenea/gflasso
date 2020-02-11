@@ -20,3 +20,6 @@ $verbose Should the gradient descent print its progress?}
 \value{
 A modified version of opts with defaults filled in.
 }
+\description{
+Merge default proximal gradient descent options
+}

@@ -3,21 +3,20 @@ title: "Introduction to the GFLasso"
 author:
       - Francisco de Abreu e Lima
       - Kris Sankaran
-date: "2018-07-11"
+date: "2020-02-11"
 output: rmarkdown::html_vignette   
 vignette: >
   %\VignetteIndexEntry{Introduction to the GFLasso}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+UNDER DEVELOPMENT
 
-This document is a revision from a GFLasso tutorial authored by Francisco de Abreu e Lima, published in [DataCamp](https://www.datacamp.com/community/tutorials/gflasso-R).
-
-While the field of machine learning advances swiftly with the development of increasingly more sophisticated techniques, little attention has been given to high-dimensional multi-task problems that require the simultaneous prediction of multiple responses. This tutorial will show you the power of the Graph-Guided Fused Lasso (GFLasso) in predicting multiple responses under a single regularized linear regression framework.
+As machine learning techniques grow increasingly more sophisticated, little attention has been given to high-dimensional multi-task problems that require the simultaneous prediction of multiple responses. This tutorial demonstrates the usage of the Graph-Guided Fused Lasso (GFLasso) in predicting multiple responses under a single regularized linear regression framework.
 
 # Introduction
 
-In supervised learning, one usually aims at predicting a dependent variable (*i.e.* response) from a set of explanatory variables (*i.e.* predictors) over a set of samples (*i.e.* observations). Regularization methods introduce penalties that prevent overfitting of high-dimensional data, particularly when the number of predictors exceeds the number of observations. These penalties are added to the objective function so that the coefficient estimates of uninformative predictors (that contribute little to the minimization of the error) are minimized themselves. The least absolute shrinkage and selection operator (Lasso) [1] is one such method.
+In supervised learning one usually aims at predicting a dependent variable (*i.e.* response) from a set of explanatory variables (*i.e.* predictors) over a set of samples (*i.e.* observations). Regularization methods introduce constraints that prevent overfitting of high-dimensional data, particularly when the number of predictors exceeds the number of observations. These penalties are added to the objective function so that the coefficient estimates of uninformative predictors (that contribute little to the minimization of the error) are minimized themselves. The least absolute shrinkage and selection operator (Lasso) [1] is one such method.
 
 ## What is the Lasso?
 Compared to a ordinary least squares (OLS), the Lasso is capable of shrinking coefficient estimates ($\beta$) to exactly zero, thereby ruling out uninformative predictors and performing feature selection, via
@@ -48,15 +47,6 @@ To sum up, to fit a GFLasso model you will need a predictor matrix **X**, a resp
 The `gflasso` package offers reproducible n-fold cross-validation with multi-threading borrowed from the `doParallel` package, as well as visualization tools. To run GFLasso in R you will need to install `devtools`, load it and install the `gflasso` package from the GitHub repository. The demonstration will be conducted on a dataset contained in the package `bgsmtr`. We also recommend installing `corrplot` and `pheatmap` to visualize the results.
 
 ``` {r load, message = FALSE}
-# Install the packages if necessary:
-# install.packages("devtools")
-# install.packages("bgsmtr")
-# install.packages("corrplot")
-# install.packages("pheatmap")
-library(devtools)
-library(bgsmtr)
-library(corrplot)
-library(pheatmap)
 library(gflasso)
 ```
 
@@ -109,61 +99,11 @@ Also, note that `cv_gflasso` objects comprise single lists with four elements: t
 
 Finally, bear in mind you can fine-tune additional parameters, such as the Nesterov's gradient convergence threshold $\delta$ and the maximum number of iterations by passing `delta_conv` and `iter_max` to `additionalOpts`, respectively. These will be used in the following example.
 
-# Determining SNP-neuroimaging associations with the GFLasso
-
-To demonstrate the simplicity and robustness of the GFLasso in a relatively high-dimensional problem, you will next model the `bgsmtr_example_data` datasets obtained from the Alzheimer’s Disease Neuroimaging Initiative (ADNI-1) database. 
-
-This is a 3-element list object, part of the `bgsmtr` package that consists of 15 structural neuromaging measures and 486 single nucleotide polymorphisms (SNPs, genetic markers) determined from a sample of 632 subjects. Importantly, the 486 SNPs cover 33 genes deemed associated with Alzheimer's disease. 
-
-Your task is to predict the morphological, neuroimaging measures from the SNP data, leveraging the correlation structure of the former. 
-
-Let's start by organizing the data and exploring the inter-dependencies among all neuroimaging features:
-
-```{r neuroimaging, fig.width = 5, fig.height = 5, fig.align = "center"}
-data(bgsmtr_example_data)
-str(bgsmtr_example_data)
-
-# Transpose, so that samples are distributed as rows, predictors / responses as columns
-SNP <- t(bgsmtr_example_data$SNP_data)
-BM <- t(bgsmtr_example_data$BrainMeasures)
-
-# Define dependency structure
-DS <- cor(BM)
-
-# Plot correlation matrix of the 15 neuroimaging measures
-corrplot(DS)
-```
-
-The figure above points to the interdependencies among the neuroimaging features. Try now cross-validating the GFLasso (can take up to a couple of hours in a laptop!) and determine SNP-neuroimaging associations. Note that generally, it is not necessary to center or scale SNP data.
-
-**Note** that in the example below, the convergence tolerance and the maximum number of iterations are specified. Feel free to try different values on your own!
-
-```{r neuroimaging2, fig.width = 5, fig.height = 5, fig.align = "center"}
-system.time(CV <- cv_gflasso(X = SNP, Y = scale(BM), R = DS, nCores = 2,
-                 additionalOpts = list(delta_conv = 1e-5, iter_max = 1e5)))
-cv_plot_gflasso(CV)
-```
-
-By challenging the GFLasso with pure Lasso models ($\gamma = 0$, first column), a pure fusion least squares ($\lambda = 0$, first row) and OLS ($\gamma = 0$ and $\lambda = 0$, top-left cell), we can conclude the present example is best modeled with non-zero penalty weights and consequently, with the full GFLasso. Take the optimal CV parameters ($\lambda = 1$ and $\gamma = 1$) to build a GFLasso model and interpret the resulting coefficient matrix:
-
-```{r finalMod, fig.width = 9, fig.height = 8, fig.align = "center"}
-gfMod <- gflasso(X = SNP, Y = scale(BM), R = DS, opts = list(lambda = CV$optimal$lambda,
-                                                                    gamma = CV$optimal$gamma,
-                                                                    delta_conv = 1e-5,
-                                                                    iter_max = 1e5))
-colnames(gfMod$B) <- colnames(BM)
-pheatmap(gfMod$B, annotation_row = data.frame("Gene" = bgsmtr_example_data$SNP_groups,
-                                              row.names = rownames(gfMod$B)),
-         show_rownames = F)
-```
-
-The figure above depicts a very large proportion of coefficients with zero or near-zero values. Although there is no obvious clustering of SNPs with respect to the genes (see row-wise annotation), there are clear associations between certains SNPs and traits. 
-
-In order to ascertain the existence of a non-random predictive mechanism, you could next repeat the procedure after permutation of the values in either $X$ or $Y$. Experimental work could help elucidate causality and mechanisms from selected SNPs. For example, SNPs that affect protein sequence and structure, disrupting the clearance of the $\beta$-Amyloid plaques that underlie Alzheimer's disease. For predicting on new samples, you could use the `predict_gflasso` function.
+For predicting on new samples, you could use the `predict_gflasso` function.
 
 # Wrap-up
 
-The GFLasso employs both regularization and fusion when modeling multiple responses, thereby facilitating the identification of associations between predictors ($X$) and responses ($Y$). It is best used when handling high-dimensional data from very few observations, since it is much slower than contending methods. Sparse conditional Gaussian graphical models [4] and Bayesian group-sparse multi-task regression model [5], for example, might be favoured chiefly for performance gains. Nevertheless, the GFLasso is highly interpretable. The GFLasso was recently used in a omics-integrative approach to uncover new lipid genes in maize [6].
+The GFLasso employs both regularization and fusion when modeling multiple responses, thereby facilitating the identification of associations between predictors ($X$) and responses ($Y$). It is best used when handling high-dimensional data from very few observations, since it is much slower than contending methods. Sparse conditional Gaussian graphical models [4] and Bayesian group-sparse multi-task regression model [5], for example, might be favoured chiefly for performance gains. Nevertheless, the GFLasso is highly interpretable. This GFLasso implementation was used in a omics-integrative approach to uncover new lipid genes in maize [6] and to relate single nucleotide polymorphisms to neuroimaging features from Alzheimer patients [7].
 
 ## References
 1. Robert Tibshirani (1994). Regression shrinkage and selection via the Lasso. *Journal of the Royal Statistical Society*, 58, 267-288. 
@@ -172,3 +112,4 @@ The GFLasso employs both regularization and fusion when modeling multiple respon
 4. Lingxue Zhang, Seyoung Kim (2014). Learning Gene Networks under SNP Perturbations Using eQTL Datasets. *PLoS Comput Biol*, 10, 2:e1003420.
 5. Keelin Greenlaw, Elena Szefer, Jinko Graham, Mary Lesperance, Farouk S. Nathoo (2017). A Bayesian group sparse multi-task regression model for imaging genetics. *Bioinformatics*, 33, 16:2513–2522.
 6. Francisco de Abreu e Lima, Kun Li, Weiwei Wen, Jianbing Yan, Zoran Nikoloski, Lothar Willmitzer, Yariv Brotman (2018). Unraveling the lipid metabolism in maize with time-resolved multi-omics data. *The Plant Journal*, 93, 6:1102-1115.
+7. Francisco de Abreu e Lima (2018). *GFLASSO: Graph-Guided Fused LASSO in R*. https://www.datacamp.com/community/tutorials/gflasso-R

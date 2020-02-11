@@ -4,9 +4,19 @@
 \alias{cv_gflasso}
 \title{k-fold Cross Validation for GFLasso}
 \usage{
-cv_gflasso(X, Y, R, additionalOpts = list(), k = 5, times = 1,
-  params = seq(0, 1, by = 0.1), nCores = NULL, seed = 100,
-  err_fun = rmse, err_opt = "min")
+cv_gflasso(
+  X,
+  Y,
+  R,
+  additionalOpts = list(),
+  k = 5,
+  times = 1,
+  params = seq(0, 1, by = 0.1),
+  nCores = NULL,
+  seed = 100,
+  err_fun = rmse,
+  err_opt = "min"
+)
 }
 \arguments{
 \item{X}{The data matrix, scaled and centered as necessary.}
